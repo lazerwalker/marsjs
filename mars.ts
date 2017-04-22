@@ -92,22 +92,25 @@ export class VM {
         })
     }
 
-    tick() {
+    tick(): boolean {
         for(let warrior of this.warriors) {
-            console.log(`PLAYER ${warrior.number}`)
+            console.log(`Player ${warrior.number}, cycle ${this.cycles}`)
             if (this.canExecute(warrior.pc)) {
                 this.execute(warrior.pc)
                 this.incrementPCIfAppropriate(warrior)
             } else {
                 console.log(`Game over: player ${warrior.number} bombed!`)
+                return false
             }
 
             this.cycles++
             if (this.cycles >= this.cycleLimit) {
                 console.log("Game over: draw!")
+                return false
             }
             console.log("")
         }
+        return true
     }
 
     private findStartPositions(programs: Instruction[][], size: number): number[]|null {
