@@ -42,10 +42,21 @@ class VM {
     readonly warriors: Warrior[]
     readonly memory: Instruction[]
 
-    constructor(readonly programs: Instruction[][], 
-                readonly size: number = 8000) {
+    readonly programs: Instruction[][]
+    readonly size: number
+    readonly cycleLimit: number
+
+    cycles: number = 0
+
+    constructor(programs: Instruction[][], 
+                size: number = 8000,
+                cycleLimit: number = 10000) {
         this.memory = []
         
+        this.programs = programs
+        this.size = size
+        this.cycleLimit = cycleLimit
+
         const emptyInstruction: Instruction = {
             opcode: Opcode.DAT, 
             aMode: AddressingMode.Direct,
@@ -87,7 +98,12 @@ class VM {
                 this.execute(warrior.pc)
                 this.incrementPCIfAppropriate(warrior)
             } else {
-                // Game over!
+                console.log(`Game over: player ${warrior.number} bombed!`)
+            }
+
+            this.cycles++
+            if (this.cycles >= this.cycleLimit) {
+                console.log("Game over: draw!")
             }
         }
     }
@@ -136,4 +152,7 @@ const vm = new VM([[
             bField: 4   
         }
 ]])
-vm.tick()
+
+while(true) { 
+    vm.tick() 
+}
