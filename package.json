@@ -1,0 +1,12 @@
+{
+  "name": "marsjs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Mike Lazer-Walker <michael@lazerwalker.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^19.0.2",
+    "ts-jest": "^19.0.10",
+    "typescript": "^2.2.2"
+  }
+}
