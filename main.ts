@@ -48,4 +48,6 @@ const bomb = [
 
 const vm = new VM([bomb])
 
-while(vm.tick()) {}
+while(vm.tick()) {
+    console.log(vm.print())
+}

@@ -94,16 +94,6 @@ export class VM {
 
     tick(): boolean {
         for(let warrior of this.warriors) {
-            console.log(`Player ${warrior.number}, cycle ${this.cycles}`)
-            for (var i = -15; i < 15; i++) {
-                let index = this.normalizedIndex(warrior.pc + i)
-                let instr = index + ": " + printInstruction(this.memory[index])
-                if (i === 0) {
-                    instr += " <--"
-                }
-                console.log(instr)
-            }        
-
             if (this.canExecute(warrior.pc)) {
                 this.execute(warrior)
             } else {
@@ -117,9 +107,24 @@ export class VM {
                 return false
             }
         }
-        console.log("")
-
         return true
+    }
+
+    print(): string {
+        let output: string[] = []
+        output.push(`CYCLE ${this.cycles}`)
+        for (let warrior of this.warriors) {
+            for (var i = -15; i < 15; i++) {
+                let index = this.normalizedIndex(warrior.pc + i)
+                let instr = index + ": " + printInstruction(this.memory[index])
+                if (i === 0) {
+                    instr += ` <-- ${warrior.number}`
+                }
+                output.push(instr)
+            }
+        }
+        output.push("")
+        return output.join("\n")
     }
 
     private findStartPositions(programs: Instruction[][], size: number): number[]|null {
@@ -145,7 +150,6 @@ export class VM {
         const {opcode, aMode, aField, bMode, bField} = instruction
 
         let shouldIncrement = true
-        console.log(`${warrior.pc}: ${printInstruction(instruction)}`)
 
         switch(opcode) {
             case Opcode.ADD:
@@ -171,8 +175,6 @@ export class VM {
                     let a = this.resolveInstruction(warrior.pc, aMode, aField, true)
                     let bAddr = this.resolveInstructionAddress(warrior.pc, bMode, bField, false)
                     this.memory[bAddr] = Object.assign({}, a)
-
-                    console.log(`Copying ${printInstruction(a)} to ${bAddr}`)
                 }
                 break;
             case Opcode.JMP:
