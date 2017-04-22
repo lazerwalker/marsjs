@@ -178,17 +178,17 @@ export class VM {
                 }
                 break;
             case Opcode.JMP:
-                shouldIncrement = false
                 if (aMode === AddressingMode.Direct) {
                     warrior.pc += aField
+                    shouldIncrement = false
                 } else if (aMode === AddressingMode.Indirect) {
                     let instr = this.resolveInstruction(warrior.pc, aMode, aField, true)
                     warrior.pc += instr.aField
+                    shouldIncrement = false
                     // TODO: I don't think this actually works
                 } else {
                     // Immediate: exit immediately
                     // Autodecrement: TODO
-                    break;
                 }
         }
         if (shouldIncrement) {
