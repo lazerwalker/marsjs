@@ -50,7 +50,7 @@ export class VM {
 
     constructor(programs: Instruction[][], 
                 size: number = 8000,
-                cycleLimit: number = 10000) {
+                cycleLimit: number = 10) {
         this.memory = []
         
         this.programs = programs
@@ -95,9 +95,17 @@ export class VM {
     tick(): boolean {
         for(let warrior of this.warriors) {
             console.log(`Player ${warrior.number}, cycle ${this.cycles}`)
+            for (var i = -15; i < 15; i++) {
+                let index = this.normalizedIndex(warrior.pc + i)
+                let instr = index + ": " + printInstruction(this.memory[index])
+                if (i === 0) {
+                    instr += " <--"
+                }
+                console.log(instr)
+            }        
+
             if (this.canExecute(warrior.pc)) {
-                this.execute(warrior.pc)
-                this.incrementPCIfAppropriate(warrior)
+                this.execute(warrior)
             } else {
                 console.log(`Game over: player ${warrior.number} bombed!`)
                 return false
@@ -108,8 +116,9 @@ export class VM {
                 console.log("Game over: draw!")
                 return false
             }
-            console.log("")
         }
+        console.log("")
+
         return true
     }
 
@@ -131,20 +140,94 @@ export class VM {
         return instruction.opcode !== Opcode.DAT
     }
 
-    private execute(pc: number) {
-        // TODO: A LOT OF LOGIC
-        const instruction = this.memory[pc]
-        console.log(`${pc}: ${printInstruction(instruction)}`)
+    private execute(warrior: Warrior) {
+        const instruction = this.memory[warrior.pc]
+        const {opcode, aMode, aField, bMode, bField} = instruction
+
+        let shouldIncrement = true
+        console.log(`${warrior.pc}: ${printInstruction(instruction)}`)
+
+        switch(opcode) {
+            case Opcode.ADD:
+                if (bMode === AddressingMode.Immediate) {
+                    return // TODO: Invalid
+                }
+                if (aMode === AddressingMode.Immediate) {
+                    let target = this.resolveInstruction(warrior.pc, bMode, bField, false)
+                    target.bField += aField
+                }  else {
+                    let a = this.resolveInstruction(warrior.pc, aMode, aField, true)
+                    let b = this.resolveInstruction(warrior.pc, bMode, bField, false)   
+
+                    b.aField += a.aField
+                    b.bField += a.bField                 
+                }
+                break;
+            case Opcode.MOV:
+                if (aMode === AddressingMode.Immediate || bMode === AddressingMode.Immediate) {
+                    let b = this.resolveInstruction(warrior.pc, bMode, bField, false)                    
+                    b.bField = aField
+                } else { 
+                    let a = this.resolveInstruction(warrior.pc, aMode, aField, true)
+                    let bAddr = this.resolveInstructionAddress(warrior.pc, bMode, bField, false)
+                    this.memory[bAddr] = Object.assign({}, a)
+
+                    console.log(`Copying ${printInstruction(a)} to ${bAddr}`)
+                }
+                break;
+            case Opcode.JMP:
+                shouldIncrement = false
+                if (aMode === AddressingMode.Direct) {
+                    warrior.pc += aField
+                } else if (aMode === AddressingMode.Indirect) {
+                    let instr = this.resolveInstruction(warrior.pc, aMode, aField, true)
+                    warrior.pc += instr.aField
+                    // TODO: I don't think this actually works
+                } else {
+                    // Immediate: exit immediately
+                    // Autodecrement: TODO
+                    break;
+                }
+        }
+        if (shouldIncrement) {
+            warrior.pc = this.normalizedIndex(warrior.pc + 1)
+        }
+    }
+    // TODO: `isA` is a weird hacky thing to deal with the fact that, when we recurse in indirect mode, we need to know whether we care about A or B
+    private resolveInstruction(pc: number, mode: AddressingMode, field: number, isA: boolean): Instruction {
+        const newAddr = this.resolveInstructionAddress(pc, mode, field, isA)
+        return this.memory[newAddr]
     }
 
-    private incrementPCIfAppropriate(warrior: Warrior) {
-        const instruction = this.memory[warrior.pc]
+    private resolveInstructionAddress(pc: number, mode: AddressingMode, field: number, isA: boolean): number {
+        let address: number
+        switch(mode) {
+            case AddressingMode.Direct:
+                return this.normalizedIndex(pc + field)
+            case AddressingMode.Indirect:
+                address = this.normalizedIndex(pc + field)
+                const target = this.memory[address]
+                if (isA) {
+                    return this.resolveInstructionAddress(address, target.aMode, target.aField, isA)
+                } else {
+                    return this.resolveInstructionAddress(address, target.bMode, target.bField, isA)
+                }
+            case AddressingMode.Autodecrement:
+                // TODO
+                return pc
+            case AddressingMode.Immediate:
+                // Unexpected, just return current instruction
+                return pc
+        }
+    }
 
-        if (instruction.opcode in [Opcode.JMP, Opcode.JMN, Opcode.JMZ]) {
-            return
-        } 
-        warrior.pc = (warrior.pc + 1 % this.size)
-        console.log(warrior.pc)
+    private normalizedIndex(index: number): number {
+        let newIndex = index
+        if (newIndex < 0) {
+            newIndex = this.size + newIndex
+        }
+
+        return newIndex % this.size;
     }
 }
 
@@ -160,6 +243,7 @@ function addressingModeAsString(mode: AddressingMode): string {
             return ">"
     }
 }
+
 function printInstruction(instruction: Instruction): string {
     return `${Opcode[instruction.opcode]} ${addressingModeAsString(instruction.aMode)}${instruction.aField}, ${addressingModeAsString(instruction.bMode)}${instruction.bField}`
 }

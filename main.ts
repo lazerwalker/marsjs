@@ -46,6 +46,6 @@ const bomb = [
     },            
 ]
 
-const vm = new VM([imp, bomb])
+const vm = new VM([bomb])
 
 while(vm.tick()) {}
