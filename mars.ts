@@ -115,7 +115,7 @@ export class VM {
         output.push(`CYCLE ${this.cycles}`)
         for (let warrior of this.warriors) {
             for (var i = -15; i < 15; i++) {
-                let index = this.normalizedIndex(warrior.pc + i)
+                let index = normalizedIndex(warrior.pc + i, this.size)
                 let instr = index + ": " + printInstruction(this.memory[index])
                 if (i === 0) {
                     instr += ` <-- ${warrior.number}`
@@ -192,7 +192,7 @@ export class VM {
                 }
         }
         if (shouldIncrement) {
-            warrior.pc = this.normalizedIndex(warrior.pc + 1)
+            warrior.pc = normalizedIndex(warrior.pc + 1, this.size)
         }
     }
     // TODO: `isA` is a weird hacky thing to deal with the fact that, when we recurse in indirect mode, we need to know whether we care about A or B
@@ -205,9 +205,9 @@ export class VM {
         let address: number
         switch(mode) {
             case AddressingMode.Direct:
-                return this.normalizedIndex(pc + field)
+                return normalizedIndex(pc + field, this.size)
             case AddressingMode.Indirect:
-                address = this.normalizedIndex(pc + field)
+                address = normalizedIndex(pc + field, this.size)
                 const target = this.memory[address]
                 if (isA) {
                     return this.resolveInstructionAddress(address, target.aMode, target.aField, isA)
@@ -222,15 +222,15 @@ export class VM {
                 return pc
         }
     }
+}
 
-    private normalizedIndex(index: number): number {
-        let newIndex = index
-        if (newIndex < 0) {
-            newIndex = this.size + newIndex
-        }
-
-        return newIndex % this.size;
+function normalizedIndex(index: number, size: number) {
+    let newIndex = index
+    if (newIndex < 0) {
+        newIndex = size + newIndex
     }
+
+    return newIndex % size;
 }
 
 function addressingModeAsString(mode: AddressingMode): string {
