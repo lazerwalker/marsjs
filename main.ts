@@ -12,6 +12,7 @@ enum Opcode {
     SUB,
     JMZ,
     JMN,
+    JMP,
     DJN,
     CMP,
     SPL,
@@ -82,7 +83,12 @@ class VM {
 
     tick() {
         for(let warrior of this.warriors) {
-            console.log(warrior)
+            if (this.canExecute(warrior.pc)) {
+                this.execute(warrior.pc)
+                this.incrementPCIfAppropriate(warrior)
+            } else {
+                // Game over!
+            }
         }
     }
 
@@ -98,6 +104,27 @@ class VM {
 
         return programs.map( (_, idx) => idx * 1000 )
     }
+
+    private canExecute(pc: number): boolean {
+        const instruction = this.memory[pc]
+        return instruction.opcode !== Opcode.DAT
+    }
+
+    private execute(pc: number) {
+        // TODO: A LOT OF LOGIC
+        const instruction = this.memory[pc]
+        console.log(instruction)
+    }
+
+    private incrementPCIfAppropriate(warrior: Warrior) {
+        const instruction = this.memory[warrior.pc]
+
+        if (instruction.opcode in [Opcode.JMP, Opcode.JMN, Opcode.JMZ]) {
+            return
+        } 
+        warrior.pc = (warrior.pc + 1 % this.size)
+        console.log(warrior.pc)
+    }
 }
 
 const vm = new VM([[
@@ -109,4 +136,4 @@ const vm = new VM([[
             bField: 4   
         }
 ]])
-console.log(vm.memory)
+vm.tick()
