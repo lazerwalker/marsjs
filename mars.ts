@@ -160,13 +160,44 @@ export class VM {
                     let target = this.resolveInstruction(warrior.pc, bMode, bField, false)
                     target.bField += aField
                 }  else {
-                    let a = this.resolveInstruction(warrior.pc, aMode, aField, true)
-                    let b = this.resolveInstruction(warrior.pc, bMode, bField, false)   
+                    var a = this.resolveInstruction(warrior.pc, aMode, aField, true)
+                    var b = this.resolveInstruction(warrior.pc, bMode, bField, false)   
 
                     b.aField += a.aField
                     b.bField += a.bField                 
                 }
-                break;
+                break
+            case Opcode.CMP:
+                // TODO: CMP X, #X
+                if (aMode === AddressingMode.Immediate) {
+                    var bValue = this.resolveInstruction(warrior.pc, bMode, bField, false).bField
+                    if (aField === bValue) {
+                        warrior.pc += 1
+                    }
+                } else {
+                    let a = this.resolveInstruction(warrior.pc, aMode, aField, true)
+                    let b = this.resolveInstruction(warrior.pc, bMode, bField, false)   
+  
+                    // TODO: Test this — I assume equality doesn't actually work?
+                    if (a === b) {
+                        warrior.pc += 1
+                    }
+                }
+                break
+            case Opcode.DJN:
+                if (bMode === AddressingMode.Immediate) {
+                    // TODO: Invalid
+                    break
+                }
+                let bAddr = this.resolveInstructionAddress(warrior.pc, bMode, bField, false)
+                let b = this.memory[bAddr]
+                b.bField -= 1
+                if (b.bField === 0 && aMode != AddressingMode.Immediate) {
+                    let instr = this.resolveInstruction(warrior.pc, aMode, aField, true)
+                    warrior.pc += instr.aField
+                    shouldIncrement = false
+                }
+                break
             case Opcode.MOV:
                 if (aMode === AddressingMode.Immediate || bMode === AddressingMode.Immediate) {
                     let b = this.resolveInstruction(warrior.pc, bMode, bField, false)                    
@@ -176,20 +207,63 @@ export class VM {
                     let bAddr = this.resolveInstructionAddress(warrior.pc, bMode, bField, false)
                     this.memory[bAddr] = Object.assign({}, a)
                 }
-                break;
+                break
             case Opcode.JMP:
-                if (aMode === AddressingMode.Direct) {
-                    warrior.pc += aField
-                    shouldIncrement = false
-                } else if (aMode === AddressingMode.Indirect) {
-                    let instr = this.resolveInstruction(warrior.pc, aMode, aField, true)
-                    warrior.pc += instr.aField
-                    shouldIncrement = false
-                    // TODO: I don't think this actually works
-                } else {
-                    // Immediate: exit immediately
-                    // Autodecrement: TODO
+                if (aMode === AddressingMode.Immediate) {
+                    break
                 }
+                let instr = this.resolveInstruction(warrior.pc, aMode, aField, true)
+                warrior.pc += instr.aField
+                shouldIncrement = false
+                // TODO: Confirm indirect works
+                // TODO: Autodecrement
+                break
+            case Opcode.JMZ:
+                var bValue = this.resolveInstruction(warrior.pc, bMode, bField, false).bField
+                if (bValue === 0) {
+                    let aValue = this.resolveInstruction(warrior.pc, bMode, bField, false).aField
+                    warrior.pc += aValue
+                }
+                break 
+            case Opcode.JMZ:
+                var bValue = this.resolveInstruction(warrior.pc, bMode, bField, false).bField
+                if (bValue !== 0) {
+                    let aValue = this.resolveInstruction(warrior.pc, bMode, bField, false).aField
+                    warrior.pc += aValue
+                }
+                break 
+            case Opcode.SPL:
+                break
+            case Opcode.SLT:
+                if (bMode === AddressingMode.Immediate) {
+                    // TODO: Spec disallows this, but I kinda like it
+                    break
+                }
+                var bValue = this.resolveInstruction(warrior.pc, bMode, bField, false).bField 
+                var compareValue: number
+                if (aMode === AddressingMode.Immediate) {
+                    compareValue = aField
+                } else {
+                    compareValue = this.resolveInstruction(warrior.pc, aMode, aField, true).bField
+                }
+                if (compareValue < bValue) {
+                    warrior.pc += 1
+                }
+                break                              
+            case Opcode.SUB:
+                if (bMode === AddressingMode.Immediate) {
+                    return // TODO: Invalid
+                }
+                if (aMode === AddressingMode.Immediate) {
+                    let target = this.resolveInstruction(warrior.pc, bMode, bField, false)
+                    target.bField -= aField
+                }  else {
+                    let a = this.resolveInstruction(warrior.pc, aMode, aField, true)
+                    let b = this.resolveInstruction(warrior.pc, bMode, bField, false)   
+                    b.aField -= a.aField
+                    b.bField -= a.bField                 
+                }
+                break
         }
         if (shouldIncrement) {
             warrior.pc = normalizedIndex(warrior.pc + 1, this.size)
