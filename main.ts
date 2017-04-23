@@ -47,7 +47,7 @@ const bomb = [
 ]
 
 const vm = new VM([imp, bomb])
-
+console.log(vm.print())
 while(vm.tick()) {
     console.log(vm.print())
 }
