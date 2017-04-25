@@ -1,4 +1,5 @@
-import {Opcode, AddressingMode, VM} from "./mars"
+import {Opcode, AddressingMode} from "./types"
+import {VM} from "./mars"
 
 /* MOV 0, 1 */
 const imp = [{
