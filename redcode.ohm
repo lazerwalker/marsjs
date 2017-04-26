@@ -1,0 +1,38 @@
+Program {
+
+Program
+    = Instruction+
+
+Instruction
+    = Label* Opcode Operand Operand Comment*
+
+Label
+    = ident+
+
+Opcode
+    = "DAT"
+    | "MOV"
+    | "ADD"
+    | "SUB"
+    | "JMZ"
+    | "JMN"
+    | "JMP"
+    | "DJN"
+    | "CMP"
+    | "SPL"
+    | "SLT"
+
+Operand
+    = AddressingMode? (Label | num*)
+
+AddressingMode = "$" | "#" | "@" | "<"
+
+Comment
+    = ";" word* // TODO
+
+word = symbol*
+
+symbol
+  = alnum | "_" | "." | "!" | "," | "'" | "{" | "}" | "?" | "-"
+
+}
