@@ -6,8 +6,6 @@ Instruction
  = label opcode operand ("," operand)? comment? -- label
  | opcode operand ("," operand)? comment? -- nolabel
 
- 
-
 label
     = word
 
@@ -31,14 +29,11 @@ operandValue = "-"? digit+
 
 addressingMode = "$" | "#" | "@" | "<"
 
-comment
-    = ";" (word | s)*
+comment = ";" (word | " ")*
 
 word = symbol+
 
 symbol
   = alnum | "_" | "." | "!" | "," | "'" | "{" | "}" | "?" | "-"
- 
- s = " "
   
 }
