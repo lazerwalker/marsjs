@@ -9,7 +9,7 @@ MOV 2, @2
 JMP -2
 DAT #0, #0
 `
-const parsed = [imp, bomb].map(parse)
+const parsed = [bomb].map(parse)
 const vm = new VM(parsed)
 
 while(vm.tick()) {
