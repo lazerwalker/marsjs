@@ -22,7 +22,7 @@ semantics.addOperation('asMarsJSObject', {
         const bResult = b.asMarsJSObject()[0] || { addressingMode: AddressingMode.Direct, field: 0}
 
         let result = {
-            label: label.sourceString,
+            label: label.asMarsJSObject(),
             opcode: opcode.asMarsJSObject(),
             aMode: aResult.addressingMode,
             aField: aResult.field,
@@ -64,12 +64,20 @@ semantics.addOperation('asMarsJSObject', {
 
         return {
             addressingMode: map[addressingMode.sourceString],
-            field: parseInt(operandValue.sourceString)
+            field: operandValue.asMarsJSObject()
         }
     },   
 
     opcode: (opcode: string) => {
         return Opcode[opcode.sourceString]
+    },
+
+    number: function(_, num: string) {
+        return parseInt(this.sourceString)
+    },
+
+    label: function(label: string) {
+        return label.sourceString
     },
 
     comment: function(_, comment: string) {

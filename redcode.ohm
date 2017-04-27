@@ -25,13 +25,15 @@ opcode
 operand
     = addressingMode? operandValue
 
-operandValue = "-"? digit+
+operandValue = number | label
 
 addressingMode = "$" | "#" | "@" | "<"
 
 comment = ";" (word | " ")*
 
 word = symbol+
+
+number = "-"? digit+
 
 symbol
   = alnum | "_" | "." | "!" | "," | "'" | "{" | "}" | "?" | "-"

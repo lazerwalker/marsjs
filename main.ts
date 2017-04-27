@@ -4,9 +4,9 @@ import {VM} from "./mars"
 
 const imp = "MOV 0, 1"
 const bomb = `
-ADD #4, 3 
+start ADD #4, 3 
 MOV 2, @2
-JMP -2
+JMP start
 DAT #0, #0
 `
 const parsed = [bomb].map(parse)
