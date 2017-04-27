@@ -1,5 +1,5 @@
 import {Opcode, AddressingMode} from "./types"
-import {parse} from "./parser"
+import {parse} from "./grammar"
 import {VM} from "./mars"
 
 const imp = "MOV 0, 1"
