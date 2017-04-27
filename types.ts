@@ -1,6 +1,6 @@
 export enum AddressingMode {
-    Direct,
     Immediate,
+    Direct,
     Indirect,
     Autodecrement // TODO: Distinguish between 86 and 88 (and 94?)
 }

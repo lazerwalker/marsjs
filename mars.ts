@@ -12,7 +12,7 @@ export class VM {
 
     constructor(programs: Instruction[][], 
                 size: number = 8000,
-                cycleLimit: number = 10) {
+                cycleLimit: number = 30) {
         this.memory = []
         
         this.programs = programs
@@ -21,9 +21,9 @@ export class VM {
 
         const emptyInstruction: Instruction = {
             opcode: Opcode.DAT, 
-            aMode: AddressingMode.Direct,
+            aMode: AddressingMode.Immediate,
             aField: 0,
-            bMode: AddressingMode.Direct,
+            bMode: AddressingMode.Immediate,
             bField: 0   
         }
 

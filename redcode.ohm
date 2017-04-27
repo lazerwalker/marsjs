@@ -1,15 +1,17 @@
 Program {
 
-Program
-    = Instruction+
+Program = Instruction+
 
-Instruction
-    = Label* Opcode Operand Operand Comment*
+Instruction 
+ = label opcode operand ("," operand)? comment? -- label
+ | opcode operand ("," operand)? comment? -- nolabel
 
-Label
-    = ident+
+ 
 
-Opcode
+label
+    = word
+
+opcode
     = "DAT"
     | "MOV"
     | "ADD"
@@ -22,17 +24,21 @@ Opcode
     | "SPL"
     | "SLT"
 
-Operand
-    = AddressingMode? (Label | num*)
+operand
+    = addressingMode? operandValue
 
-AddressingMode = "$" | "#" | "@" | "<"
+operandValue = "-"? digit+
 
-Comment
-    = ";" word* // TODO
+addressingMode = "$" | "#" | "@" | "<"
 
-word = symbol*
+comment
+    = ";" (word | s)*
+
+word = symbol+
 
 symbol
   = alnum | "_" | "." | "!" | "," | "'" | "{" | "}" | "?" | "-"
-
+ 
+ s = " "
+  
 }
