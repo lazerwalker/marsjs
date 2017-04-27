@@ -9,6 +9,7 @@ export class VM {
     readonly cycleLimit: number
 
     cycles: number = 0
+    nextProgramIndex: number = 0
 
     constructor(programs: Instruction[][], 
                 size: number = 8000,
@@ -55,19 +56,23 @@ export class VM {
     }
 
     tick(): boolean {
-        for(let warrior of this.warriors) {
-            if (this.canExecute(warrior)) {
-                this.execute(warrior)
-            } else {
-                console.log(`Game over: player ${warrior.number} bombed!`)
-                return false
-            }
+        let warrior = this.warriors[this.nextProgramIndex]
+        if (this.canExecute(warrior)) {
+            this.execute(warrior)
+        } else {
+            console.log(`Game over: player ${warrior.number} bombed!`)
+            return false
+        }
 
-            this.cycles++
-            if (this.cycles > this.cycleLimit) {
-                console.log("Game over: draw!")
-                return false
-            }
+        this.cycles++
+        if (this.cycles > this.cycleLimit) {
+            console.log("Game over: draw!")
+            return false
+        }
+
+        this.nextProgramIndex += 1
+        if (this.nextProgramIndex >= this.warriors.length) {
+            this.nextProgramIndex = 0
         }
         return true
     }
