@@ -16,13 +16,19 @@ As mentioned, the parser is written in [Ohm](https://ohmlang.github.io). The gra
 
 `parser.ts` exposes very few objects/functions:
 
-`grammar`: An Ohm Grammar object, generated using the aforementioned `redcode.ohm`
+* `grammar`: An Ohm Grammar object, generated using the aforementioned `redcode.ohm`
 
-`semantics`: An Ohm Semantics object that operates on the previous grammar, defining a single `toMarsJSObject` expression
+* `semantics`: An Ohm Semantics object that operates on the previous grammar, defining a single `toMarsJSObject` expression
 
 * `parse(text: string): Instruction[]` takes in a string of valid Redcode, and outputs an array of Instruction objects readable by the `VM`.
 
 
 ## VM
 
-For now, you likely want to just look at `mars.ts` for documentation or `main.ts` as an example. Tl;dr, a VM object takes in an array of `Instruction` objects, and optionally a memory size and max number of cycles. `tick()` executes a single instruction, exiting early and returning `false` if a player has lost (and returning `true` otherwise (not currently returning any information, other than a console log, about the failure). `print()` is a helper function that outputs a pretty debug version of the current state of the game world.
+For now, you likely want to just look at `mars.ts` for documentation or `main.ts` as an example. 
+
+Tl;dr, a VM object takes in an array of `Instruction` objects, and optionally a memory size and max number of cycles. 
+
+`tick()` executes a single instruction, exiting early and returning `false` if a player has lost (and returning `true` otherwise (not currently returning any information, other than a console log, about the failure). 
+
+`print()` is a helper function that outputs a pretty debug version of the current state of the game world.
