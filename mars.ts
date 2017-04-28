@@ -42,7 +42,7 @@ export class VM {
             return
         }
         const positions = maybePositions as number[]
-
+        
         // Copy programs to memory
         for (let i = 0; i < programs.length; i++) {
             const program = programs[i]
@@ -51,6 +51,14 @@ export class VM {
             for (let j = 0; j < program.length; j++) {
                 const absoluteAddr = start + j
                 const instruction = program[j]
+
+                if (instruction.opcode === Opcode.END) {
+                    if (instruction.aField && this.labels[instruction.aField]) {
+                        positions[i] = this.labels[instruction.aField]
+                    }
+                    break
+                }
+
                 this.memory[absoluteAddr] = instruction
 
                 if (instruction.label) {

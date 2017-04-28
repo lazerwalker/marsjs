@@ -17,7 +17,8 @@ export enum Opcode {
     CMP,
     SPL,
     SLT,
-    EQU
+    EQU,
+    END
 }
 
 export interface Instruction {
