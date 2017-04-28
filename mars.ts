@@ -11,6 +11,8 @@ export class VM {
     cycles: number = 0
     nextProgramIndex: number = 0
 
+    private labels = {} 
+
     constructor(programs: Instruction[][], 
                 size: number = 8000,
                 cycleLimit: number = 10) {
@@ -46,7 +48,13 @@ export class VM {
             const start = positions[i]
 
             for (let j = 0; j < program.length; j++) {
-                this.memory[start + j] = program[j]
+                const absoluteAddr = start + j
+                this.memory[absoluteAddr] = program[j]
+
+                if (program[j].label) {
+                    const label = program[j].label
+                    this.labels[label] = absoluteAddr
+                }
             }
         }
 
@@ -169,6 +177,9 @@ export class VM {
                     b.bField = aAddr
                 } else { 
                     this.memory[bAddr] = Object.assign({}, a)
+                    if (a.label) {
+                        this.labels[a.label] = bAddr
+                    }
                 }
                 break
             case Opcode.JMP:
@@ -235,6 +246,10 @@ export class VM {
      *  If mode is .Autoincrement, this will mutate memory.
      */
     private evaluateField(pc: number, mode: AddressingMode, field: number): number {
+        if (this.labels[field]) {
+            return this.labels[field]
+        }
+
         if (mode === AddressingMode.Immediate) {
             return field
         }
@@ -280,5 +295,11 @@ function addressingModeAsString(mode: AddressingMode): string {
 }
 
 function printInstruction(instruction: Instruction): string {
-    return `${Opcode[instruction.opcode]} ${addressingModeAsString(instruction.aMode)}${instruction.aField}, ${addressingModeAsString(instruction.bMode)}${instruction.bField}`
+    const str = `${Opcode[instruction.opcode]} ${addressingModeAsString(instruction.aMode)}${instruction.aField}, ${addressingModeAsString(instruction.bMode)}${instruction.bField}`
+
+    if (instruction.label) {
+        return `${instruction.label} ${str}`
+    } else {
+        return str
+    }
 }
