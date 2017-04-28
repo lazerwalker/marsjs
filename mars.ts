@@ -117,6 +117,8 @@ export class VM {
         const instruction = this.memory[pc]
         const {opcode, aMode, aField, bMode, bField} = instruction
 
+        const aValue = this.evaluateField(pc, aMode, aField)
+        const bValue = this.evaluateField(pc, bMode, bField)
         let shouldIncrement = true
 
         switch(opcode) {
@@ -125,11 +127,11 @@ export class VM {
                     return // TODO: Invalid
                 }
                 if (aMode === AddressingMode.Immediate) {
-                    let target = this.resolveInstruction(pc, bMode, bField, false)
+                    let target = this.memory[bValue]
                     target.bField += aField
                 }  else {
-                    var a = this.resolveInstruction(pc, aMode, aField, true)
-                    var b = this.resolveInstruction(pc, bMode, bField, false)   
+                    let a = this.memory[aValue]
+                    let b = this.memory[bValue]
 
                     b.aField += a.aField
                     b.bField += a.bField                 
@@ -138,14 +140,14 @@ export class VM {
             case Opcode.CMP:
                 // TODO: CMP X, #X
                 if (aMode === AddressingMode.Immediate) {
-                    var bValue = this.resolveInstruction(pc, bMode, bField, false).bField
-                    if (aField === bValue) {
+                    let b = this.memory[bValue].bField
+                    if (aField === b) {
                         warrior.pc.push(pc + 2)
                         shouldIncrement= false
                     }
                 } else {
-                    let a = this.resolveInstruction(pc, aMode, aField, true)
-                    let b = this.resolveInstruction(pc, bMode, bField, false)   
+                    let a = this.memory[aValue]
+                    let b = this.memory[bValue]
   
                     // TODO: Test this — I assume equality doesn't actually work?
                     if (a === b) {
@@ -159,69 +161,59 @@ export class VM {
                     // TODO: Invalid
                     break
                 }
-                let bAddr = this.resolveInstructionAddress(pc, bMode, bField, false)
-                var b = this.memory[bAddr]
+                let b = this.memory[bValue]
                 b.bField -= 1
                 if (b.bField === 0 && aMode != AddressingMode.Immediate) {
-                    let instr = this.resolveInstruction(pc, aMode, aField, true)
-                    warrior.pc.push(instr.aField)
+                    let a = this.memory[aValue].aField
+                    warrior.pc.push(a)
                     shouldIncrement = false
                 }
                 break
             case Opcode.MOV:
                 if (aMode === AddressingMode.Immediate || bMode === AddressingMode.Immediate) {
-                    var b = this.resolveInstruction(pc, bMode, bField, false)                    
-                    b.bField = aField
+                    let b = this.memory[bValue]
+                    b.bField = aValue
                 } else { 
-                    let a = this.resolveInstruction(pc, aMode, aField, true)
-                    let bAddr = this.resolveInstructionAddress(pc, bMode, bField, false)
-                    this.memory[bAddr] = Object.assign({}, a)
+                    let a = this.memory[aValue]
+                    this.memory[bValue] = Object.assign({}, a)
                 }
                 break
             case Opcode.JMP:
                 if (aMode === AddressingMode.Immediate) {
                     break
                 }
-                var addr = this.resolveInstructionAddress(pc, aMode, aField, true)
-                warrior.pc.push(addr)
+                warrior.pc.push(aValue)
                 shouldIncrement = false
-                // TODO: Confirm indirect works
-                // TODO: Autodecrement
                 break
             case Opcode.JMZ:
-                var bValue = this.resolveInstruction(pc, bMode, bField, false).bField
-                if (bValue === 0) {
-                    var addr = this.resolveInstructionAddress(pc, bMode, bField, false)
-                    warrior.pc.push(addr)
+                if (this.memory[bValue].bField === 0) {                  
+                    warrior.pc.push(aValue)
                     shouldIncrement = false
                 }
                 break 
             case Opcode.JMZ:
-                var bValue = this.resolveInstruction(pc, bMode, bField, false).bField
-                if (bValue !== 0) {
-                    var addr = this.resolveInstructionAddress(pc, bMode, bField, false)
-                    warrior.pc.push(addr)
+                if (this.memory[bValue].bField !== 0) {
+                    warrior.pc.push(aValue)
                     shouldIncrement = false
                 }
                 break 
             case Opcode.SPL:
-                var addr = this.resolveInstructionAddress(pc, aMode, aField, true)
                 warrior.pc.push(pc + 1)
-                warrior.pc.push(addr)
+                warrior.pc.push(aValue)
                 break
             case Opcode.SLT:
                 if (bMode === AddressingMode.Immediate) {
                     // TODO: Spec disallows this, but I kinda like it
                     break
                 }
-                var bValue = this.resolveInstruction(pc, bMode, bField, false).bField 
+
                 var compareValue: number
                 if (aMode === AddressingMode.Immediate) {
                     compareValue = aField
                 } else {
-                    compareValue = this.resolveInstruction(pc, aMode, aField, true).bField
+                    compareValue = this.memory[aValue].aField
                 }
-                if (compareValue < bValue) {
+                if (compareValue < this.memory[bValue].bField) {
                     warrior.pc.push(pc + 2)
                     shouldIncrement = false
                 }
@@ -231,11 +223,11 @@ export class VM {
                     return // TODO: Invalid
                 }
                 if (aMode === AddressingMode.Immediate) {
-                    let target = this.resolveInstruction(pc, bMode, bField, false)
+                    let target = this.memory[bValue]
                     target.bField -= aField
                 }  else {
-                    let a = this.resolveInstruction(pc, aMode, aField, true)
-                    let b = this.resolveInstruction(pc, bMode, bField, false)   
+                    let a = this.memory[aValue]
+                    let b = this.memory[bValue]
                     b.aField -= a.aField
                     b.bField -= a.bField                 
                 }
@@ -245,10 +237,32 @@ export class VM {
             warrior.pc.push(normalizedIndex(pc + 1, this.size))
         }
     }
-    // TODO: `isA` is a weird hacky thing to deal with the fact that, when we recurse in indirect mode, we need to know whether we care about A or B
-    private resolveInstruction(pc: number, mode: AddressingMode, field: number, isA: boolean): Instruction {
-        const newAddr = this.resolveInstructionAddress(pc, mode, field, isA)
-        return this.memory[newAddr]
+
+    /** Evaluates the value of a given field.
+     *  If mode is .Immediate, this will be a raw value
+     *  Otherwise, it will be an absolute address
+     *  If mode is .Autoincrement, this will mutate memory
+     */
+    private evaluateField(pc: number, mode: AddressingMode, field: number): number {
+        if (mode === AddressingMode.Immediate) {
+            return field
+        }
+
+        let absolute = pc + field
+
+        if (mode === AddressingMode.Direct) {
+            return absolute
+        }
+
+        let value = this.memory[absolute].bField
+        
+        if (mode === AddressingMode.Autodecrement) {
+            value -= 1
+            this.memory[absolute].bField = value
+        }
+
+        absolute += value
+        return value
     }
 
     private resolveInstructionAddress(pc: number, mode: AddressingMode, field: number, isA: boolean): number {
