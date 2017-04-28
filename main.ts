@@ -1,4 +1,3 @@
-import {Opcode, AddressingMode} from "./types"
 import {parse} from "./parser"
 import {VM} from "./mars"
 

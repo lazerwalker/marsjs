@@ -16,9 +16,8 @@ export enum Opcode {
     DJN,
     CMP,
     SPL,
-    SLT
-    // XCH
-    // PCT
+    SLT,
+    EQU
 }
 
 export interface Instruction {

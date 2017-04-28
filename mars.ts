@@ -12,6 +12,7 @@ export class VM {
     nextProgramIndex: number = 0
 
     private labels = {} 
+    private equs = {}
 
     constructor(programs: Instruction[][], 
                 size: number = 8000,
@@ -49,11 +50,17 @@ export class VM {
 
             for (let j = 0; j < program.length; j++) {
                 const absoluteAddr = start + j
-                this.memory[absoluteAddr] = program[j]
+                const instruction = program[j]
+                this.memory[absoluteAddr] = instruction
 
-                if (program[j].label) {
-                    const label = program[j].label
-                    this.labels[label] = absoluteAddr
+                if (instruction.label) {
+                    const label = instruction.label
+
+                    if (instruction.opcode === Opcode.EQU) {
+                        this.equs[label] = instruction.aField
+                    } else {
+                        this.labels[label] = absoluteAddr
+                    }
                 }
             }
         }
@@ -245,7 +252,11 @@ export class VM {
      *  Otherwise, it will be an absolute address.
      *  If mode is .Autoincrement, this will mutate memory.
      */
-    private evaluateField(pc: number, mode: AddressingMode, field: number): number {
+    private evaluateField(pc: number, mode: AddressingMode, field: number | string): number | string {
+        if (this.equs[field]) {
+            field = this.equs[field]
+        }
+
         if (this.labels[field]) {
             return this.labels[field]
         }
@@ -254,7 +265,7 @@ export class VM {
             return field
         }
 
-        let absolute = pc + field
+        let absolute = pc + (field as number)
 
         if (mode === AddressingMode.Direct) {
             return absolute

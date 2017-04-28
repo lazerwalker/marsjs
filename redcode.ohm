@@ -21,6 +21,7 @@ opcode
     | "CMP"
     | "SPL"
     | "SLT"
+    | "EQU"
 
 operand
     = addressingMode? operandValue
@@ -29,13 +30,13 @@ operandValue = number | label
 
 addressingMode = "$" | "#" | "@" | "<"
 
-comment = ";" (word | " ")*
+comment = ";" (alnum | symbol | " ")*
 
-word = symbol+
+word = alnum+
 
 number = "-"? digit+
 
 symbol
-  = alnum | "_" | "." | "!" | "," | "'" | "{" | "}" | "?" | "-"
+  = alnum | "_" | "." | "!" | "'" | "{" | "}" | "?" | "-"
   
 }
