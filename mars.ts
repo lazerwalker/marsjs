@@ -117,8 +117,12 @@ export class VM {
         const instruction = this.memory[pc]
         const {opcode, aMode, aField, bMode, bField} = instruction
 
-        const aValue = this.evaluateField(pc, aMode, aField)
-        const bValue = this.evaluateField(pc, bMode, bField)
+        const aAddr = this.evaluateField(pc, aMode, aField)
+        const bAddr = this.evaluateField(pc, bMode, bField)
+
+        const a = this.memory[aAddr]
+        const b = this.memory[bAddr]
+
         let shouldIncrement = true
 
         switch(opcode) {
@@ -127,12 +131,8 @@ export class VM {
                     return // TODO: Invalid
                 }
                 if (aMode === AddressingMode.Immediate) {
-                    let target = this.memory[bValue]
-                    target.bField += aField
+                    b.bField += aField
                 }  else {
-                    let a = this.memory[aValue]
-                    let b = this.memory[bValue]
-
                     b.aField += a.aField
                     b.bField += a.bField                 
                 }
@@ -140,15 +140,11 @@ export class VM {
             case Opcode.CMP:
                 // TODO: CMP X, #X
                 if (aMode === AddressingMode.Immediate) {
-                    let b = this.memory[bValue].bField
-                    if (aField === b) {
+                    if (aField === b.bField) {
                         warrior.pc.push(pc + 2)
                         shouldIncrement= false
                     }
                 } else {
-                    let a = this.memory[aValue]
-                    let b = this.memory[bValue]
-  
                     // TODO: Test this — I assume equality doesn't actually work?
                     if (a === b) {
                         warrior.pc.push(pc + 2)
@@ -161,45 +157,43 @@ export class VM {
                     // TODO: Invalid
                     break
                 }
-                let b = this.memory[bValue]
                 b.bField -= 1
+
                 if (b.bField === 0 && aMode != AddressingMode.Immediate) {
-                    let a = this.memory[aValue].aField
-                    warrior.pc.push(a)
+                    warrior.pc.push(a.aField)
                     shouldIncrement = false
                 }
                 break
             case Opcode.MOV:
                 if (aMode === AddressingMode.Immediate || bMode === AddressingMode.Immediate) {
-                    let b = this.memory[bValue]
-                    b.bField = aValue
+                    b.bField = aAddr
                 } else { 
-                    let a = this.memory[aValue]
-                    this.memory[bValue] = Object.assign({}, a)
+                    this.memory[bAddr] = Object.assign({}, a)
                 }
                 break
             case Opcode.JMP:
-                if (aMode === AddressingMode.Immediate) {
-                    break
-                }
-                warrior.pc.push(aValue)
+                if (aMode === AddressingMode.Immediate) { break }
+                warrior.pc.push(aAddr)
                 shouldIncrement = false
                 break
             case Opcode.JMZ:
-                if (this.memory[bValue].bField === 0) {                  
-                    warrior.pc.push(aValue)
+                if (aMode === AddressingMode.Immediate) { break }
+                if (b.bField === 0) {                  
+                    warrior.pc.push(aAddr)
                     shouldIncrement = false
                 }
                 break 
             case Opcode.JMZ:
-                if (this.memory[bValue].bField !== 0) {
-                    warrior.pc.push(aValue)
+                if (aMode === AddressingMode.Immediate) { break }
+                if (b.bField !== 0) {
+                    warrior.pc.push(aAddr)
                     shouldIncrement = false
                 }
                 break 
             case Opcode.SPL:
+                if (aMode === AddressingMode.Immediate) { break }            
                 warrior.pc.push(pc + 1)
-                warrior.pc.push(aValue)
+                warrior.pc.push(aAddr)
                 break
             case Opcode.SLT:
                 if (bMode === AddressingMode.Immediate) {
@@ -211,9 +205,9 @@ export class VM {
                 if (aMode === AddressingMode.Immediate) {
                     compareValue = aField
                 } else {
-                    compareValue = this.memory[aValue].aField
+                    compareValue = a.aField
                 }
-                if (compareValue < this.memory[bValue].bField) {
+                if (compareValue < b.bField) {
                     warrior.pc.push(pc + 2)
                     shouldIncrement = false
                 }
@@ -223,11 +217,8 @@ export class VM {
                     return // TODO: Invalid
                 }
                 if (aMode === AddressingMode.Immediate) {
-                    let target = this.memory[bValue]
-                    target.bField -= aField
+                    b.bField -= aField
                 }  else {
-                    let a = this.memory[aValue]
-                    let b = this.memory[bValue]
                     b.aField -= a.aField
                     b.bField -= a.bField                 
                 }
@@ -239,9 +230,9 @@ export class VM {
     }
 
     /** Evaluates the value of a given field.
-     *  If mode is .Immediate, this will be a raw value
-     *  Otherwise, it will be an absolute address
-     *  If mode is .Autoincrement, this will mutate memory
+     *  If mode is .Immediate, this will be a raw value.
+     *  Otherwise, it will be an absolute address.
+     *  If mode is .Autoincrement, this will mutate memory.
      */
     private evaluateField(pc: number, mode: AddressingMode, field: number): number {
         if (mode === AddressingMode.Immediate) {
@@ -262,29 +253,7 @@ export class VM {
         }
 
         absolute += value
-        return value
-    }
-
-    private resolveInstructionAddress(pc: number, mode: AddressingMode, field: number, isA: boolean): number {
-        let address: number
-        switch(mode) {
-            case AddressingMode.Direct:
-                return normalizedIndex(pc + field, this.size)
-            case AddressingMode.Indirect:
-                address = normalizedIndex(pc + field, this.size)
-                const target = this.memory[address]
-                if (isA) {
-                    return this.resolveInstructionAddress(address, target.aMode, target.aField, isA)
-                } else {
-                    return this.resolveInstructionAddress(address, target.bMode, target.bField, isA)
-                }
-            case AddressingMode.Autodecrement:
-                // TODO
-                return pc
-            case AddressingMode.Immediate:
-                // Unexpected, just return current instruction
-                return pc
-        }
+        return absolute
     }
 }
 

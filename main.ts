@@ -12,6 +12,7 @@ DAT #0, #0
 const parsed = [bomb].map(parse)
 const vm = new VM(parsed)
 
+console.log(vm.print())
 while(vm.tick()) {
     console.log(vm.print())
 }
