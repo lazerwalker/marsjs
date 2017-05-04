@@ -23,6 +23,20 @@ opcode
     | "SLT"
     | "EQU"
     | "END"
+    | "dat"
+    | "mov"
+    | "add"
+    | "sub"
+    | "jmz"
+    | "jmn"
+    | "jmp"
+    | "djn"
+    | "cmp"
+    | "spl"
+    | "slt"
+    | "equ"
+    | "end"    
+
 
 operand
     = addressingMode? operandValue

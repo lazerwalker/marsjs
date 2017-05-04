@@ -69,7 +69,7 @@ semantics.addOperation('asMarsJSObject', {
     },   
 
     opcode: (opcode: string) => {
-        return Opcode[opcode.sourceString]
+        return Opcode[opcode.sourceString.toUpperCase()]
     },
 
     number: function(_, num: string) {
