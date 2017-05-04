@@ -88,7 +88,7 @@ export class VM {
         }
 
         this.cycles++
-        if (this.cycles > this.cycleLimit) {
+        if (this.cycleLimit && this.cycles > this.cycleLimit) {
             console.log("Game over: draw!")
             return false
         }
