@@ -5,6 +5,7 @@ Program = Instruction+
 Instruction 
  = label opcode operand ("," operand)? comment? -- label
  | opcode operand ("," operand)? comment? -- nolabel
+ | comment -- commentonly
 
 label
     = word
@@ -45,13 +46,10 @@ operandValue = number | label
 
 addressingMode = "$" | "#" | "@" | "<"
 
-comment = ";" (alnum | symbol | " ")*
+comment = ";" any*
 
 word = alnum+
 
 number = "-"? digit+
-
-symbol
-  = alnum | "_" | "." | "!" | "'" | "{" | "}" | "?" | "-"
   
 }
