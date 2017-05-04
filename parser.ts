@@ -14,7 +14,9 @@ export function parse(text:string): Instruction[] {
 
 semantics.addOperation('asMarsJSObject', {
     Program: (instructions: any[]) => {
-        return instructions.children.map((i) => i.asMarsJSObject() )
+        return instructions.children
+            .map((i) => i.asMarsJSObject())
+            .filter((i) => i != undefined)
     },
 
     Instruction_label: (label: string, opcode: string, a: string, _, b: string, comment: string) => {
@@ -51,7 +53,11 @@ semantics.addOperation('asMarsJSObject', {
             result["comment"] = c
         }
         return result
-    },   
+    },
+
+    Instruction_commentonly: (comment: String) => {
+        return undefined
+    },
 
     operand: (addressingMode: string, operandValue: string | number) => {
         let map = {

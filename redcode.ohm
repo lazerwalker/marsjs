@@ -39,17 +39,31 @@ opcode
     | "end"    
 
 
-operand
-    = addressingMode? operandValue
+Operand
+    = addressingMode? OperandValue
 
-operandValue = number | label
+OperandValue = AddExp | OperandValue
+
+AddExp
+    = AddExp "+" MulExp  -- plus
+    | AddExp "-" MulExp  -- minus
+    | MulExp
+
+MulExp
+    = MulExp "*" operandLiteral  -- times
+    | MulExp "/" operandLiteral  -- divide
+    | operandLiteral
+
+operandLiteral = number | label
 
 addressingMode = "$" | "#" | "@" | "<"
 
-comment = ";" any*
+comment = ";" (~lineTerminator any)*
 
 word = alnum+
 
 number = "-"? digit+
-  
+
+lineTerminator = "\n" | "\r" | "\u2028" | "\u2029"
+
 }
