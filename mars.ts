@@ -16,7 +16,7 @@ export class VM {
 
     constructor(programs: Instruction[][], 
                 size: number = 8000,
-                cycleLimit: number = 10) {
+                cycleLimit: number) {
         this.memory = []
         
         this.programs = programs
