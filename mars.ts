@@ -221,6 +221,7 @@ export class VM {
                 if (aMode === AddressingMode.Immediate) { break }            
                 warrior.pc.push(pc + 1)
                 warrior.pc.push(aAddr)
+                shouldIncrement = false
                 break
             case Opcode.SLT:
                 if (bMode === AddressingMode.Immediate) {
