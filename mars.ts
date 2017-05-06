@@ -1,4 +1,4 @@
-import {AddressingMode, Opcode, Instruction, Warrior} from "./types"
+import {AddressingMode, Opcode, Instruction, Warrior, MathExpression, MathOperator} from "./types"
 
 export class VM {
     readonly warriors: Warrior[]
@@ -88,7 +88,7 @@ export class VM {
         }
 
         this.cycles++
-        if (this.cycleLimit && this.cycles > this.cycleLimit) {
+        if (!!this.cycleLimit && this.cycles > this.cycleLimit) {
             console.log("Game over: draw!")
             return false
         }
@@ -260,34 +260,57 @@ export class VM {
      *  Otherwise, it will be an absolute address.
      *  If mode is .Autoincrement, this will mutate memory.
      */
-    private evaluateField(pc: number, mode: AddressingMode, field: number | string): number | string {
-        if (this.equs[field]) {
-            field = this.equs[field]
+    private evaluateField(pc: number, mode: AddressingMode, field: number | string | MathExpression ): number {
+        function isMathExpression(x: number | string | MathExpression): x is MathExpression {
+            return (<MathExpression>x).operator !== undefined;
         }
 
-        if (this.labels[field]) {
-            return this.labels[field]
+        if (isMathExpression(field)) {
+            const left = this.evaluateField(pc, mode, field.left)
+            const right = this.evaluateField(pc, mode, field.right)
+            switch(field.operator) {
+                case MathOperator.Add:
+                    return left + right
+                case MathOperator.Subtract:
+                    return left - right
+                case MathOperator.Multiply:
+                    return left * right
+                case MathOperator.Divide:
+                    return left / right
+            }
+        } 
+        if (typeof field === "string" ) {
+            if (this.labels[field]) {
+                field = this.equs[field]
+            }
+
+            if (typeof field === "string" && this.equs[field]) {
+                return this.labels[field]
+            }
         }
 
-        if (mode === AddressingMode.Immediate) {
-            return field
-        }
+        if (typeof field === "number") {
+            if (mode === AddressingMode.Immediate) {
+                return field
+            }
 
-        let absolute = pc + (field as number)
+            let absolute = pc + (field as number)
 
-        if (mode === AddressingMode.Direct) {
+            if (mode === AddressingMode.Direct) {
+                return absolute
+            }
+
+            let value = this.memory[absolute].bField
+            
+            if (mode === AddressingMode.Autodecrement) {
+                value -= 1
+                this.memory[absolute].bField = value
+            }
+
+            absolute += value
             return absolute
         }
-
-        let value = this.memory[absolute].bField
-        
-        if (mode === AddressingMode.Autodecrement) {
-            value -= 1
-            this.memory[absolute].bField = value
-        }
-
-        absolute += value
-        return absolute
+        return 0
     }
 }
 
@@ -313,12 +336,35 @@ function addressingModeAsString(mode: AddressingMode): string {
     }
 }
 
+function mathOperatorAsString(operator: MathOperator): string {
+    switch(operator) {
+        case MathOperator.Add:
+            return "+"
+        case MathOperator.Subtract:
+            return "-"
+        case MathOperator.Multiply:
+            return "*"
+        case MathOperator.Divide:
+            return "/"
+    }
+}
+
 function printInstruction(instruction: Instruction): string {
-    const str = `${Opcode[instruction.opcode]} ${addressingModeAsString(instruction.aMode)}${instruction.aField}, ${addressingModeAsString(instruction.bMode)}${instruction.bField}`
+    const str = `${Opcode[instruction.opcode]} ${addressingModeAsString(instruction.aMode)}${printOperand(instruction.aField)}, ${addressingModeAsString(instruction.bMode)}${printOperand(instruction.bField)}`
 
     if (instruction.label) {
         return `${instruction.label} ${str}`
     } else {
         return str
+    }
+}
+
+function printOperand(operand: string | number | MathExpression): string {
+    if (typeof operand == "string") {
+        return operand
+    } else if (typeof operand == "number") {
+        return "" + operand
+    } else {
+        return `${printOperand(operand.left)}${mathOperatorAsString(operand.operator)}${printOperand(operand.right)}`
     }
 }

@@ -1,4 +1,4 @@
-import {Opcode, AddressingMode, Instruction} from "./types"
+import {Opcode, AddressingMode, Instruction, MathOperator, MathExpression} from "./types"
 
 const fs = require('fs')
 const ohm = require('ohm-js')
@@ -59,7 +59,7 @@ semantics.addOperation('asMarsJSObject', {
         return undefined
     },
 
-    operand: (addressingMode: string, operandValue: string | number) => {
+    Operand: (addressingMode: string, operandValue: string | number) => {
         let map = {
             "$": AddressingMode.Direct,
             "#": AddressingMode.Immediate,
@@ -73,6 +73,44 @@ semantics.addOperation('asMarsJSObject', {
             field: operandValue.asMarsJSObject()
         }
     },   
+
+    OperandValue: (e) => e.asMarsJSObject(),
+
+    AddExp: (e) => e.asMarsJSObject(),
+
+    AddExp_plus: (left: string, _, right: string): MathExpression => {
+        return {
+            "operator": MathOperator.Add,
+            "left": left.asMarsJSObject(),
+            "right": right.asMarsJSObject()
+        }
+    },
+
+    AddExp_minus: (left: string, _, right: string): MathExpression => {
+        return {
+            "operator": MathOperator.Subtract,
+            "left": left.asMarsJSObject(),
+            "right": right.asMarsJSObject()
+        }
+    },
+
+    MulExp_times: (left: string, _, right: string): MathExpression => {
+        return {
+            "operator": MathOperator.Multiply,
+            "left": left.asMarsJSObject(),
+            "right": right.asMarsJSObject()
+        }
+    },
+
+    MulExp_divide: (left: string, _, right: string): MathExpression => {
+        return {
+            "operator": MathOperator.Divide,
+            "left": left.asMarsJSObject(),
+            "right": right.asMarsJSObject()
+        }
+    },
+
+    operandLiteral: (e) => e.asMarsJSObject(),
 
     opcode: (opcode: string) => {
         return Opcode[opcode.sourceString.toUpperCase()]

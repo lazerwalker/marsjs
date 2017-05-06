@@ -3,8 +3,8 @@ Program {
 Program = Instruction+
 
 Instruction 
- = label opcode operand ("," operand)? comment? -- label
- | opcode operand ("," operand)? comment? -- nolabel
+ = label opcode Operand ("," Operand)? comment? -- label
+ | opcode Operand ("," Operand)? comment? -- nolabel
  | comment -- commentonly
 
 label

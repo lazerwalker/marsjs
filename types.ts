@@ -21,6 +21,19 @@ export enum Opcode {
     END
 }
 
+export enum MathOperator {
+    Add,
+    Divide,
+    Subtract,
+    Multiply
+}
+
+export interface MathExpression {
+    left: string | number | MathExpression,
+    right: string | number | MathExpression,
+    operator: MathOperator
+}
+
 export interface Instruction {
     opcode: Opcode,
     label?: string,
