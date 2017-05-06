@@ -3,10 +3,19 @@ import {VM} from "./mars"
 
 const fs = require('fs')
 
-const test = parse(fs.readFileSync('validate.rs'))
-const vm = new VM([test], 8000, undefined)
+const script = fs.readFileSync('validate.rs')
+
+const test = parse(script)
+const vm = new VM([test])
 
 console.log(vm.print())
-while(vm.tick()) {
-    console.log(vm.print())
+
+var timeout = 0
+function loop() {
+    if (vm.tick()) {
+        console.log(vm.print())
+        setTimeout(loop, timeout)
+    }
 }
+
+loop()
