@@ -104,6 +104,7 @@ export class VM {
         let output: string[] = []
         output.push(`CYCLE ${this.cycles}`)
         for (let warrior of this.warriors) {
+            output.push(`Process Queue: [${warrior.pc}]`)
             for (var i = -5; i < 15; i++) {
                 let index = normalizedIndex(warrior.pc[0] + i, this.size)
                 let instr = index + ": " + printInstruction(this.memory[index])
