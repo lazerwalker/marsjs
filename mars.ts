@@ -262,24 +262,19 @@ export class VM {
      *  Otherwise, it will be an absolute address.
      *  If mode is .Autoincrement, this will mutate memory.
      */
-    private evaluateOperand(pc: number, mode: AddressingMode, field: number | string | MathExpression, isAbsolute: boolean = false): number {   
+    private evaluateOperand(pc: number, mode: AddressingMode, field: number | string | MathExpression): number {   
         if (typeof field === "number") {
             if (mode === AddressingMode.Immediate) {
                 return field
             }
 
-            // If this is recursing from a label, field is already an 
-            // absolute (rather than relative) address
-            var absoluteAddr = field
-            if (!isAbsolute) {
-                absoluteAddr += pc
-            }
+            var absoluteAddr = field + pc
 
             if (mode === AddressingMode.Direct) {
                 return absoluteAddr
             }
 
-            let value = this.evaluateField(this.memory[absoluteAddr].bField)
+            let value = this.evaluateField(absoluteAddr, this.memory[absoluteAddr].bField)
             if (mode === AddressingMode.Autodecrement) {
                 value -= 1
                 this.memory[absoluteAddr].bField = value
@@ -288,16 +283,16 @@ export class VM {
             absoluteAddr += value
             return absoluteAddr
         } else {
-            const evaluatedField = this.evaluateField(field)
-            return this.evaluateOperand(pc, mode, evaluatedField, true)
+            const evaluatedField = this.evaluateField(pc, field)
+            return this.evaluateOperand(pc, mode, evaluatedField)
         }
     }
 
-    /** Takes a given field and normalizes it into a number,
+    /** Takes a given field and normalizes it into a relative address number.
      *  It (1) performs label/equ lookups and (2) evaluates math operations.
      *  It does NOT actually resolve that number to an absolute address
      */
-    private evaluateField(field: string | number | MathExpression): number {
+    private evaluateField(pc: number, field: string | number | MathExpression): number {
         function isMathExpression(x: number | string | MathExpression): x is MathExpression {
             return (<MathExpression>x).operator !== undefined;
         }
@@ -305,8 +300,8 @@ export class VM {
         if (typeof field === "number") {
             return field
         } else if (isMathExpression(field)) {
-            const left = this.evaluateField(field.left)
-            const right = this.evaluateField(field.right)
+            const left = this.evaluateField(pc, field.left)
+            const right = this.evaluateField(pc, field.right)
             switch(field.operator) {
                 case MathOperator.Add:
                     return left + right
@@ -319,9 +314,7 @@ export class VM {
             }
         } else if (typeof field === "string" ) {
             if (this.labels[field] != undefined) {
-                field = this.labels[field]
-                // TODO: Should this actually recurse?
-                return this.evaluateField(field)
+                return (this.labels[field] as number) - pc
             } else if (this.equs[field] != undefined) {
                 return this.equs[field]
             } else {
