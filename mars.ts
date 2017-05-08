@@ -283,11 +283,11 @@ export class VM {
         } 
         if (typeof field === "string" ) {
             if (this.labels[field]) {
-                field = this.equs[field]
+                field = this.labels[field]
             }
 
             if (typeof field === "string" && this.equs[field]) {
-                return this.labels[field]
+                return this.equs[field]
             }
         }
 
