@@ -141,8 +141,8 @@ export class VM {
         const instruction = this.memory[pc]
         const {opcode, aMode, aField, bMode, bField} = instruction
 
-        const aAddr = this.evaluateField(pc, aMode, aField)
-        const bAddr = this.evaluateField(pc, bMode, bField)
+        const aAddr = this.evaluateOperand(pc, aMode, aField)
+        const bAddr = this.evaluateOperand(pc, bMode, bField)
 
         const a = this.memory[aAddr]
         const b = this.memory[bAddr]
@@ -257,19 +257,56 @@ export class VM {
         }
     }
 
-    /** Evaluates the value of a given field.
+    /** Takes a given operand and returns an actual numeric value
      *  If mode is .Immediate, this will be a raw value.
      *  Otherwise, it will be an absolute address.
      *  If mode is .Autoincrement, this will mutate memory.
      */
-    private evaluateField(pc: number, mode: AddressingMode, field: number | string | MathExpression ): number {
+    private evaluateOperand(pc: number, mode: AddressingMode, field: number | string | MathExpression, isAbsolute: boolean = false): number {   
+        if (typeof field === "number") {
+            if (mode === AddressingMode.Immediate) {
+                return field
+            }
+
+            // If this is recursing from a label, field is already an 
+            // absolute (rather than relative) address
+            var absoluteAddr = field
+            if (!isAbsolute) {
+                absoluteAddr += pc
+            }
+
+            if (mode === AddressingMode.Direct) {
+                return absoluteAddr
+            }
+
+            let value = this.evaluateField(this.memory[absoluteAddr].bField)
+            if (mode === AddressingMode.Autodecrement) {
+                value -= 1
+                this.memory[absoluteAddr].bField = value
+            }
+
+            absoluteAddr += value
+            return absoluteAddr
+        } else {
+            const evaluatedField = this.evaluateField(field)
+            return this.evaluateOperand(pc, mode, evaluatedField, true)
+        }
+    }
+
+    /** Takes a given field and normalizes it into a number,
+     *  It (1) performs label/equ lookups and (2) evaluates math operations.
+     *  It does NOT actually resolve that number to an absolute address
+     */
+    private evaluateField(field: string | number | MathExpression): number {
         function isMathExpression(x: number | string | MathExpression): x is MathExpression {
             return (<MathExpression>x).operator !== undefined;
         }
 
-        if (isMathExpression(field)) {
-            const left = this.evaluateField(pc, mode, field.left)
-            const right = this.evaluateField(pc, mode, field.right)
+        if (typeof field === "number") {
+            return field
+        } else if (isMathExpression(field)) {
+            const left = this.evaluateField(field.left)
+            const right = this.evaluateField(field.right)
             switch(field.operator) {
                 case MathOperator.Add:
                     return left + right
@@ -280,39 +317,18 @@ export class VM {
                 case MathOperator.Divide:
                     return left / right
             }
-        } 
-        if (typeof field === "string" ) {
-            if (this.labels[field]) {
+        } else if (typeof field === "string" ) {
+            if (this.labels[field] != undefined) {
                 field = this.labels[field]
-            }
-
-            if (typeof field === "string" && this.equs[field]) {
+                // TODO: Should this actually recurse?
+                return this.evaluateField(field)
+            } else if (this.equs[field] != undefined) {
                 return this.equs[field]
+            } else {
+                // TODO: Should this throw?
+                console.log(`FATAL ERROR: could not find label '${field}'`)
             }
         }
-
-        if (typeof field === "number") {
-            if (mode === AddressingMode.Immediate) {
-                return field
-            }
-
-            let absolute = pc + (field as number)
-
-            if (mode === AddressingMode.Direct) {
-                return absolute
-            }
-
-            let value = this.memory[absolute].bField
-            
-            if (mode === AddressingMode.Autodecrement) {
-                value -= 1
-                this.memory[absolute].bField = value
-            }
-
-            absolute += value
-            return absolute
-        }
-        return 0
     }
 }
 
