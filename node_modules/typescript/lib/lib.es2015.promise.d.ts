@@ -18,11 +18,10 @@ and limitations under the License.
 /// <reference no-default-lib="true"/>
 
 
-
 interface PromiseConstructor {
     /**
-      * A reference to the prototype.
-      */
+     * A reference to the prototype.
+     */
     readonly prototype: Promise<any>;
 
     /**
@@ -198,20 +197,13 @@ interface PromiseConstructor {
      * @param reason The reason the promise was rejected.
      * @returns A new rejected Promise.
      */
-    reject(reason: any): Promise<never>;
+    reject<T = never>(reason?: any): Promise<T>;
 
     /**
-     * Creates a new rejected promise for the provided reason.
-     * @param reason The reason the promise was rejected.
-     * @returns A new rejected Promise.
+     * Creates a new resolved promise for the provided value.
+     * @param value A promise.
+     * @returns A promise whose internal state matches the provided promise.
      */
-    reject<T>(reason: any): Promise<T>;
-
-    /**
-      * Creates a new resolved promise for the provided value.
-      * @param value A promise.
-      * @returns A promise whose internal state matches the provided promise.
-      */
     resolve<T>(value: T | PromiseLike<T>): Promise<T>;
 
     /**
