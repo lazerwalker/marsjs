@@ -91,9 +91,9 @@ export class VM {
 
   tick(): boolean {
     let warrior = this.warriors[this.nextProgramIndex];
-    if (this.canExecute(warrior)) {
-      this.execute(warrior);
-    } else {
+    this.execute(warrior);
+
+    if (warrior.pc.length === 0) {
       console.log(`Game over: player ${warrior.number} bombed!`);
       return false;
     }
@@ -145,11 +145,6 @@ export class VM {
     return programs.map((_, idx) => idx * 1000);
   }
 
-  private canExecute(warrior: Warrior): boolean {
-    const instruction = this.memory[warrior.pc[0]];
-    return instruction.opcode !== Opcode.DAT;
-  }
-
   private execute(warrior: Warrior) {
     const pc = warrior.pc.shift() as number;
     const instruction = this.memory[pc];
@@ -189,6 +184,9 @@ export class VM {
             shouldIncrement = false;
           }
         }
+        break;
+      case Opcode.DAT:
+        // Don't do anything, just let the process die
         break;
       case Opcode.DJN:
         if (bMode === AddressingMode.Immediate) {
