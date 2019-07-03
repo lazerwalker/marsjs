@@ -26,7 +26,8 @@ export class VM {
   constructor(
     programs: Instruction[][],
     size: number = 8000,
-    cycleLimit?: number
+    cycleLimit?: number,
+    startPositions?: number[]
   ) {
     this.memory = [];
 
@@ -46,13 +47,18 @@ export class VM {
       this.memory[i] = Object.assign({}, emptyInstruction);
     }
 
-    const maybePositions = this.findStartPositions(programs, size);
+    let positions: number[];
+    if (startPositions && startPositions.length === programs.length) {
+      positions = startPositions;
+    } else {
+      const maybePositions = this.findStartPositions(programs, size);
 
-    if (maybePositions === null) {
-      console.log("Could not assign positions");
-      return;
+      if (maybePositions === null) {
+        console.log("Could not assign positions");
+        return;
+      }
+      positions = maybePositions as number[];
     }
-    const positions = maybePositions as number[];
 
     // Copy programs to memory
     for (let i = 0; i < programs.length; i++) {
