@@ -62,6 +62,7 @@ export class VM {
       for (let j = 0; j < program.length; j++) {
         const absoluteAddr = start + j;
         const instruction = program[j];
+        instruction.owner = i;
 
         if (instruction.opcode === Opcode.END) {
           if (instruction.aField && this.labels[instruction.aField]) {
@@ -156,6 +157,8 @@ export class VM {
     const a = this.memory[aAddr];
     const b = this.memory[bAddr];
 
+    instruction.owner = warrior.number;
+
     let shouldIncrement = true;
 
     switch (opcode) {
@@ -165,9 +168,11 @@ export class VM {
         }
         if (aMode === AddressingMode.Immediate) {
           b.bField += aField;
+          b.owner = warrior.number;
         } else {
           b.aField += a.aField;
           b.bField += a.bField;
+          b.owner = warrior.number;
         }
         break;
       case Opcode.CMP:
@@ -194,6 +199,7 @@ export class VM {
           break;
         }
         b.bField -= 1;
+        b.owner = warrior.number;
 
         if (b.bField === 0 && aMode != AddressingMode.Immediate) {
           warrior.pc.push(a.aField);
@@ -206,6 +212,7 @@ export class VM {
           bMode === AddressingMode.Immediate
         ) {
           b.bField = aAddr;
+          b.owner = warrior.number;
         } else {
           this.memory[bAddr] = Object.assign({}, a);
           if (a.label) {
@@ -269,9 +276,11 @@ export class VM {
         }
         if (aMode === AddressingMode.Immediate) {
           b.bField -= aField;
+          b.owner = warrior.number;
         } else {
           b.aField -= a.aField;
           b.bField -= a.bField;
+          b.owner = warrior.number;
         }
         break;
     }
