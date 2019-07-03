@@ -1,10 +1,11 @@
 {
-  "name": "marsjs",
-  "version": "1.0.0",
+  "name": "mars-js",
+  "version": "0.0.1",
   "main": "index.js",
   "author": "Mike Lazer-Walker <michael@lazerwalker.com>",
   "license": "MIT",
   "scripts": {
+    "build": "tsc",
     "test": "ts-node test.ts",
     "main": "ts-node main.ts"
   },
