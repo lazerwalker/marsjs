@@ -161,8 +161,8 @@ export class VM {
     const instruction = this.memory[pc];
     const { opcode, aMode, aField, bMode, bField } = instruction;
 
-    const aAddr = this.evaluateOperand(pc, aMode, aField);
-    const bAddr = this.evaluateOperand(pc, bMode, bField);
+    const aAddr = this.evaluateOperand(pc, aMode, aField, this.size);
+    const bAddr = this.evaluateOperand(pc, bMode, bField, this.size);
 
     const a = this.memory[aAddr];
     const b = this.memory[bAddr];
@@ -307,14 +307,15 @@ export class VM {
   private evaluateOperand(
     pc: number,
     mode: AddressingMode,
-    field: number | string | MathExpression
+    field: number | string | MathExpression,
+    size: number
   ): number {
     if (typeof field === "number") {
       if (mode === AddressingMode.Immediate) {
         return field;
       }
 
-      var absoluteAddr = field + pc;
+      var absoluteAddr = (field + pc) % size;
 
       if (mode === AddressingMode.Direct) {
         return absoluteAddr;
@@ -334,7 +335,7 @@ export class VM {
       return absoluteAddr;
     } else {
       const evaluatedField = this.evaluateField(pc, field);
-      return this.evaluateOperand(pc, mode, evaluatedField);
+      return this.evaluateOperand(pc, mode, evaluatedField, size);
     }
   }
 
