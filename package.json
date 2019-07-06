@@ -9,7 +9,7 @@
     "dist/**/*"
   ],
   "scripts": {
-    "build": "rm -rf dist && parcel build index.ts && tsc --emitDeclarationOnly",
+    "build": "rm -rf dist && tsc",
     "test": "ts-node test.ts",
     "main": "ts-node main.ts"
   },

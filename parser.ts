@@ -8,7 +8,76 @@ import {
 
 import * as ohm from "ohm-js";
 
-const grammarText: string = require("./redcode.ohm");
+const grammarText: string = `
+Program {
+
+  Program = Instruction+
+  
+  Instruction 
+   = label opcode Operand ("," Operand)? comment? -- label
+   | opcode Operand ("," Operand)? comment? -- nolabel
+   | comment -- commentonly
+  
+  label
+      = word
+  
+  opcode
+      = "DAT"
+      | "MOV"
+      | "ADD"
+      | "SUB"
+      | "JMZ"
+      | "JMN"
+      | "JMP"
+      | "DJN"
+      | "CMP"
+      | "SPL"
+      | "SLT"
+      | "EQU"
+      | "END"
+      | "dat"
+      | "mov"
+      | "add"
+      | "sub"
+      | "jmz"
+      | "jmn"
+      | "jmp"
+      | "djn"
+      | "cmp"
+      | "spl"
+      | "slt"
+      | "equ"
+      | "end"    
+  
+  
+  Operand
+      = addressingMode? OperandValue
+  
+  OperandValue = AddExp | OperandValue
+  
+  AddExp
+      = AddExp "+" MulExp  -- plus
+      | AddExp "-" MulExp  -- minus
+      | MulExp
+  
+  MulExp
+      = MulExp "*" operandLiteral  -- times
+      | MulExp "/" operandLiteral  -- divide
+      | operandLiteral
+  
+  operandLiteral = number | label
+  
+  addressingMode = "$" | "#" | "@" | "<"
+  
+  comment = ";" (~lineTerminator any)*
+  
+  word = alnum+
+  
+  number = "-"? digit+
+  
+  lineTerminator = "\\n" | "\\r" | "\\u2028" | "\\u2029"
+  
+  }`;
 
 export const grammar: ohm.Grammar = ohm.grammar(grammarText);
 export const semantics = grammar.createSemantics();
