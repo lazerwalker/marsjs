@@ -140,16 +140,20 @@ export class VM {
     programs: Instruction[][],
     size: number
   ): number[] | null {
-    // TODO: Replace with a real randomizer
-    // Constraints are:
-    // * Must not overlap
-    // * Should(?) be 1000 spaces away if possible
+    /** TODO: Very silly.
+     * Current design goals:
+     * As far away from each other as currently possible.
+     * e.g. we calculate how much non-program space there will be, and aim to put them somewhere equidistant.
+     */
 
-    if (programs.length > size / 1000) {
-      return null;
-    }
+    const totalProgramSize = _.flatten(programs).length;
+    const desiredGap = (size - totalProgramSize) / 2;
 
-    return programs.map((_, idx) => idx * 1000);
+    const startingPosition = _.random(0, size);
+
+    return programs.map(
+      (_, idx) => startingPosition + ((idx * desiredGap) % size)
+    );
   }
 
   private execute(warrior: Warrior) {
