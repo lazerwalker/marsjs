@@ -15,12 +15,12 @@
     "moduleResolution": "node",
     "pretty": true,
     "target": "es5",
-    "outDir": "lib",
+    "outDir": "dist",
     "lib": ["es5", "es2015", "dom"]
   },
   "formatCodeOptions": {
     "indentSize": 2,
     "tabSize": 2
   },
-  "exclude": ["node_modules", "distribution"]
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,27 +1,28 @@
 {
   "name": "corewars-js",
-  "version": "0.0.5",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "version": "0.0.6",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "Mike Lazer-Walker <michael@lazerwalker.com>",
   "license": "MIT",
   "files": [
-    "lib/**/*"
+    "dist/**/*"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && parcel build index.ts && tsc --emitDeclarationOnly",
     "test": "ts-node test.ts",
     "main": "ts-node main.ts"
   },
   "devDependencies": {
+    "@types/node": "^7.0.13",
     "@types/lodash": "^4.14.135",
     "jest": "^19.0.2",
+    "parcel-bundler": "^1.12.3",
     "ts-jest": "^19.0.10",
     "ts-node": "^8.3.0",
     "typescript": "^2.2.2"
   },
   "dependencies": {
-    "@types/node": "^7.0.13",
     "lodash": "^4.17.11",
     "ohm-js": "^0.14.0"
   }

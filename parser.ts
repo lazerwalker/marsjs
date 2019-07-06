@@ -6,10 +6,9 @@ import {
   MathExpression
 } from "./types";
 
-import * as fs from "fs";
 import * as ohm from "ohm-js";
 
-const grammarText = fs.readFileSync("redcode.ohm", "utf8");
+const grammarText: string = require("./redcode.ohm");
 
 export const grammar: ohm.Grammar = ohm.grammar(grammarText);
 export const semantics = grammar.createSemantics();
