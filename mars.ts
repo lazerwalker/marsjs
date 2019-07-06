@@ -202,6 +202,7 @@ export class VM {
         break;
       case Opcode.DAT:
         // Don't do anything, just let the process die
+        shouldIncrement = false;
         break;
       case Opcode.DJN:
         if (bMode === AddressingMode.Immediate) {
