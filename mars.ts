@@ -20,9 +20,8 @@ export class VM {
   cycles: number = 0;
   nextProgramIndex: number = 0;
 
-  // TODO: Not sure either of these are actually numbers
-  private labels: { [name: string]: number } = {};
-  private equs: { [name: string]: number } = {};
+  labels: { [name: string]: number } = {};
+  equs: { [name: string]: number } = {};
 
   constructor(
     programs: Instruction[][],
@@ -182,11 +181,11 @@ export class VM {
           return; // TODO: Invalid
         }
         if (aMode === AddressingMode.Immediate) {
-          b.bField += aField;
+          b.bField = this.evaluateField(bAddr, b.bField) + aAddr;
           b.owner = warrior.number;
         } else {
-          b.aField += a.aField;
-          b.bField += a.bField;
+          b.aField = this.evaluateField(bAddr, b.aField) + aAddr;
+          b.bField = this.evaluateField(bAddr, b.bField) + bAddr;
           b.owner = warrior.number;
         }
         break;
@@ -214,7 +213,7 @@ export class VM {
           // TODO: Invalid
           break;
         }
-        b.bField -= 1;
+        b.bField = this.evaluateField(bAddr, b.bField) - 1;
         b.owner = warrior.number;
 
         if (b.bField === 0 && aMode != AddressingMode.Immediate) {
@@ -351,7 +350,7 @@ export class VM {
    */
   // TODO: This returns -1 if it fails. It should fail more noisily
   private evaluateField(
-    pc: number,
+    absoluteAddr: number,
     field: string | number | MathExpression
   ): number {
     const isMathExpression = (
@@ -363,8 +362,8 @@ export class VM {
     if (typeof field === "number") {
       return field;
     } else if (isMathExpression(field)) {
-      const left = this.evaluateField(pc, field.left);
-      const right = this.evaluateField(pc, field.right);
+      const left = this.evaluateField(absoluteAddr, field.left);
+      const right = this.evaluateField(absoluteAddr, field.right);
       if (_.isUndefined(left) || _.isUndefined(right)) {
         return -1;
       }
@@ -381,7 +380,7 @@ export class VM {
       return -1;
     } else if (typeof field === "string") {
       if (this.labels[field] != undefined) {
-        return (this.labels[field] as number) - pc;
+        return (this.labels[field] as number) - absoluteAddr;
       } else if (this.equs[field] != undefined) {
         return this.equs[field];
       } else {
