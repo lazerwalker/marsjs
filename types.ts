@@ -48,6 +48,27 @@ export interface Instruction {
   owner?: number; // Warrior number
 }
 
+export const instructionToString = (instruction: Instruction): string => {
+  const { label, opcode, aMode, aField, bMode, bField } = instruction;
+
+  const mode = {
+    [AddressingMode.Immediate]: "#",
+    [AddressingMode.Direct]: "",
+    [AddressingMode.Indirect]: "@",
+    [AddressingMode.Autodecrement]: "<"
+  };
+
+  let str = `${Opcode[opcode]} ${mode[aMode]}${aField}, ${
+    mode[bMode]
+  } ${bField}`;
+
+  if (label) {
+    str = `${label} ${str}`;
+  }
+
+  return str;
+};
+
 export interface Warrior {
   number: number;
   pc: number[];
