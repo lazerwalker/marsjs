@@ -6,7 +6,8 @@ import {
   MathExpression,
   MathOperator
 } from "./types";
-import _ = require("lodash");
+
+import * as _ from "lodash";
 
 export class VM {
   readonly warriors: Warrior[];
@@ -30,6 +31,7 @@ export class VM {
     startPositions?: number[]
   ) {
     this.memory = [];
+    this.warriors = [];
 
     this.programs = programs;
     this.size = size;
