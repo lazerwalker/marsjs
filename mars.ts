@@ -65,8 +65,9 @@ export class VM {
       const program = programs[i];
       const start = positions[i];
 
+      let indexOffset = 0; // Since we skip some instructions, but use the for loop index for positioning.
       for (let j = 0; j < program.length; j++) {
-        const absoluteAddr = start + j;
+        const absoluteAddr = start + j + indexOffset;
         const instruction = program[j];
         instruction.owner = i;
 
@@ -77,16 +78,18 @@ export class VM {
           break;
         }
 
+        if (instruction.opcode === Opcode.EQU) {
+          if (instruction.label) {
+            this.equs[instruction.label] = instruction.aField;
+          }
+          indexOffset -= 1;
+          continue;
+        }
+
         this.memory[absoluteAddr] = instruction;
 
         if (instruction.label) {
-          const label = instruction.label;
-
-          if (instruction.opcode === Opcode.EQU) {
-            this.equs[label] = instruction.aField;
-          } else {
-            this.labels[label] = absoluteAddr;
-          }
+          this.labels[instruction.label] = absoluteAddr;
         }
       }
     }
