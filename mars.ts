@@ -290,11 +290,11 @@ export class VM {
           return; // TODO: Invalid
         }
         if (aMode === AddressingMode.Immediate) {
-          b.bField -= aField;
+          b.bField = this.evaluateField(bAddr, b.bField) - aAddr;
           b.owner = warrior.number;
         } else {
-          b.aField -= a.aField;
-          b.bField -= a.bField;
+          b.aField = this.evaluateField(bAddr, b.aField) - aAddr;
+          b.bField = this.evaluateField(bAddr, b.bField) - bAddr;
           b.owner = warrior.number;
         }
         break;
