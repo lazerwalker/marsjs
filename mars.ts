@@ -337,7 +337,7 @@ export class VM {
       }
 
       absoluteAddr += value;
-      return absoluteAddr;
+      return absoluteAddr % size;
     } else {
       const evaluatedField = this.evaluateField(pc, field);
       return this.evaluateOperand(pc, mode, evaluatedField, size);
