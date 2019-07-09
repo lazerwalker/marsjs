@@ -204,14 +204,16 @@ semantics.addOperation("asMarsJSObject", {
     };
   },
 
-  operandLiteral: e => e.asMarsJSObject(),
+  operandLiteral: e => {
+    return e.asMarsJSObject();
+  },
 
   opcode: (opcode: ohm.Node) => {
     return Opcode[opcode.sourceString.toUpperCase()];
   },
 
-  number: function(_, num: ohm.Node) {
-    return parseInt(num.sourceString);
+  number: function(minus: ohm.Node, num: ohm.Node) {
+    return parseInt(`${minus.sourceString}${num.sourceString}`);
   },
 
   label: function(label: ohm.Node) {
