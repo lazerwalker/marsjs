@@ -155,8 +155,8 @@ export class VM {
 
     const startingPosition = _.random(0, size);
 
-    return programs.map(
-      (_, idx) => startingPosition + ((idx * desiredGap) % size)
+    return programs.map((_, idx) =>
+      Math.floor(startingPosition + ((idx * desiredGap) % size))
     );
   }
 
