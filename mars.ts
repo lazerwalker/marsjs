@@ -67,7 +67,7 @@ export class VM {
 
       let indexOffset = 0; // Since we skip some instructions, but use the for loop index for positioning.
       for (let j = 0; j < program.length; j++) {
-        const absoluteAddr = (start + j + indexOffset) % size;
+        const absoluteAddr = normalizedIndex(start + j + indexOffset, size);
         const instruction = program[j];
         instruction.owner = i;
 
@@ -180,11 +180,20 @@ export class VM {
           return; // TODO: Invalid
         }
         if (aMode === AddressingMode.Immediate) {
-          b.bField = this.evaluateField(bAddr, b.bField) + aAddr;
+          b.bField = normalizedIndex(
+            this.evaluateField(bAddr, b.bField) + aAddr,
+            this.size
+          );
           b.owner = warrior.number;
         } else {
-          b.aField = this.evaluateField(bAddr, b.aField) + aAddr;
-          b.bField = this.evaluateField(bAddr, b.bField) + bAddr;
+          b.aField = normalizedIndex(
+            this.evaluateField(bAddr, b.aField) + aAddr,
+            this.size
+          );
+          b.bField = normalizedIndex(
+            this.evaluateField(bAddr, b.bField) + bAddr,
+            this.size
+          );
           b.owner = warrior.number;
         }
         break;
@@ -228,7 +237,7 @@ export class VM {
           b.bField = aAddr;
           b.owner = warrior.number;
         } else {
-          this.memory[bAddr] = Object.assign({}, a);
+          this.memory[bAddr] = { ...a };
           if (a.label) {
             this.labels[a.label] = bAddr;
           }
@@ -289,11 +298,20 @@ export class VM {
           return; // TODO: Invalid
         }
         if (aMode === AddressingMode.Immediate) {
-          b.bField = this.evaluateField(bAddr, b.bField) - aAddr;
+          b.bField = normalizedIndex(
+            this.evaluateField(bAddr, b.bField) - aAddr,
+            this.size
+          );
           b.owner = warrior.number;
         } else {
-          b.aField = this.evaluateField(bAddr, b.aField) - aAddr;
-          b.bField = this.evaluateField(bAddr, b.bField) - bAddr;
+          b.aField = normalizedIndex(
+            this.evaluateField(bAddr, b.aField) - aAddr,
+            this.size
+          );
+          b.bField = normalizedIndex(
+            this.evaluateField(bAddr, b.bField) - bAddr,
+            this.size
+          );
           b.owner = warrior.number;
         }
         break;
@@ -319,7 +337,7 @@ export class VM {
         return field;
       }
 
-      var absoluteAddr = (field + pc) % size;
+      var absoluteAddr = normalizedIndex(field + pc, size);
 
       if (mode === AddressingMode.Direct) {
         return absoluteAddr;
@@ -336,7 +354,7 @@ export class VM {
       }
 
       absoluteAddr += value;
-      return absoluteAddr % size;
+      return normalizedIndex(absoluteAddr, this.size);
     } else {
       const evaluatedField = this.evaluateField(pc, field);
       return this.evaluateOperand(pc, mode, evaluatedField, size);
@@ -395,7 +413,7 @@ export class VM {
 
 function normalizedIndex(index: number, size: number) {
   let newIndex = index;
-  if (newIndex < 0) {
+  while (newIndex < 0) {
     newIndex = size + newIndex;
   }
 
