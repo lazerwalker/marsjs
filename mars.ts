@@ -99,26 +99,43 @@ export class VM {
     });
   }
 
-  tick(): boolean {
+  /** Iterates the CPU one cycle
+   * Returns the next absolute address that will execute, or undefined if the game is over
+   */
+  tick(): number | undefined {
     let warrior = this.warriors[this.nextProgramIndex];
+    if (!warrior) {
+      console.log("Warning: couldn't execute program");
+      return undefined;
+    }
+
     this.execute(warrior);
 
     if (warrior.pc.length === 0) {
       console.log(`Game over: player ${warrior.number} bombed!`);
-      return false;
+      return undefined;
     }
 
     this.cycles++;
     if (this.cycleLimit && this.cycles > this.cycleLimit) {
       console.log("Game over: draw!");
-      return false;
+      return undefined;
     }
 
     this.nextProgramIndex += 1;
     if (this.nextProgramIndex >= this.warriors.length) {
       this.nextProgramIndex = 0;
     }
-    return true;
+    return this.warriors[this.nextProgramIndex].pc[0];
+  }
+
+  winner(): Warrior | undefined {
+    const aliveWarriors = this.warriors.filter(w => w.pc.length > 0);
+    if (aliveWarriors.length === 1) {
+      return aliveWarriors[0];
+    }
+
+    return undefined;
   }
 
   print(): string {
