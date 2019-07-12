@@ -53,7 +53,6 @@ export class VM {
       positions = startPositions;
     } else {
       const maybePositions = this.findStartPositions(programs, size);
-
       if (maybePositions === null) {
         console.log("Could not assign positions");
         return;
@@ -68,7 +67,7 @@ export class VM {
 
       let indexOffset = 0; // Since we skip some instructions, but use the for loop index for positioning.
       for (let j = 0; j < program.length; j++) {
-        const absoluteAddr = start + j + indexOffset;
+        const absoluteAddr = (start + j + indexOffset) % size;
         const instruction = program[j];
         instruction.owner = i;
 
@@ -151,12 +150,12 @@ export class VM {
      */
 
     const totalProgramSize = _.flatten(programs).length;
-    const desiredGap = (size - totalProgramSize) / 2;
+    const desiredGap = Math.floor((size - totalProgramSize) / 2);
 
     const startingPosition = _.random(0, size);
 
-    return programs.map((_, idx) =>
-      Math.floor(startingPosition + ((idx * desiredGap) % size))
+    return programs.map(
+      (_, idx) => (startingPosition + idx * desiredGap) % size
     );
   }
 
