@@ -429,12 +429,10 @@ function mathOperatorAsString(operator: MathOperator): string {
   }
 }
 
-function printInstruction(instruction: Instruction): string {
-  const str = `${Opcode[instruction.opcode]} ${addressingModeAsString(
-    instruction.aMode
-  )}${printOperand(instruction.aField)}, ${addressingModeAsString(
-    instruction.bMode
-  )}${printOperand(instruction.bField)}`;
+export function printInstruction(instruction: Instruction): string {
+  const str = `${printOpcode(instruction)} ${printOperandA(
+    instruction
+  )}, ${printOperandB(instruction)}`;
 
   if (instruction.label) {
     return `${instruction.label} ${str}`;
@@ -443,14 +441,33 @@ function printInstruction(instruction: Instruction): string {
   }
 }
 
-function printOperand(operand: string | number | MathExpression): string {
+export const printOpcode = (instruction: Instruction) => {
+  return Opcode[instruction.opcode];
+};
+
+export const printOperand = (
+  mode: AddressingMode,
+  value: string | number | MathExpression
+): string => {
+  return `${addressingModeAsString(mode)}${printOperandVal(value)}`;
+};
+
+export const printOperandA = (instruction: Instruction): string => {
+  return printOperand(instruction.aMode, instruction.aField);
+};
+
+export const printOperandB = (instruction: Instruction): string => {
+  return printOperand(instruction.bMode, instruction.bField);
+};
+
+const printOperandVal = (operand: string | number | MathExpression): string => {
   if (typeof operand == "string") {
     return operand;
   } else if (typeof operand == "number") {
     return "" + operand;
   } else {
-    return `${printOperand(operand.left)}${mathOperatorAsString(
+    return `${printOperandVal(operand.left)}${mathOperatorAsString(
       operand.operator
-    )}${printOperand(operand.right)}`;
+    )}${printOperandVal(operand.right)}`;
   }
-}
+};
