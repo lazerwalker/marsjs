@@ -60,10 +60,14 @@ export class VM {
       positions = maybePositions as number[];
     }
 
+    let startOffsets: number[] = [];
+
     // Copy programs to memory
     for (let i = 0; i < programs.length; i++) {
       const program = programs[i];
       const start = positions[i];
+
+      startOffsets[i] = 0;
 
       let indexOffset = 0; // Since we skip some instructions, but use the for loop index for positioning.
       for (let j = 0; j < program.length; j++) {
@@ -91,11 +95,18 @@ export class VM {
         if (instruction.label) {
           this.labels[instruction.label] = absoluteAddr;
         }
+
+        // UH OH
+        // This is not part of the ICWS-88 spec (there's some faffing around with an EQU at the end of the program instead)
+        // Too bad for now, this is helpful to me for my game.
+        if (instruction.label === "start") {
+          startOffsets[i] = absoluteAddr - start;
+        }
       }
     }
 
     this.warriors = positions.map((pc, idx) => {
-      return { number: idx, pc: [pc] };
+      return { number: idx, pc: [pc + startOffsets[idx]] };
     });
   }
 
