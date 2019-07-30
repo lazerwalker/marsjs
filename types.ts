@@ -1,6 +1,6 @@
 export enum AddressingMode {
-  Immediate,
   Direct,
+  Immediate,
   Indirect,
   Autodecrement // TODO: Distinguish between 86 and 88 (and 94?)
 }
@@ -52,8 +52,8 @@ export const instructionToString = (instruction: Instruction): string => {
   const { label, opcode, aMode, aField, bMode, bField } = instruction;
 
   const mode = {
-    [AddressingMode.Immediate]: "#",
     [AddressingMode.Direct]: "",
+    [AddressingMode.Immediate]: "#",
     [AddressingMode.Indirect]: "@",
     [AddressingMode.Autodecrement]: "<"
   };
